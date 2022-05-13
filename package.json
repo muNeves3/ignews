@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
+    "type-check": "tsc --project tsconfig.json --pretty --noEmit",
+    "postinstall": "husky install",
+    "commit": "cz"
   },
   "husky": {
     "hooks": {
@@ -20,7 +24,6 @@
     ]
   },
   "dependencies": {
-    "husky": "^8.0.1",
     "next": "12.1.6",
     "react": "18.1.0",
     "react-dom": "18.1.0",
@@ -29,8 +32,12 @@
   "devDependencies": {
     "@types/node": "^17.0.31",
     "@types/react": "^18.0.9",
+    "commitizen": "^4.2.4",
     "eslint": "8.15.0",
     "eslint-config-next": "12.1.6",
+    "husky": "^8.0.1",
+    "lint-staged": "^12.4.1",
+    "prettier": "^2.6.2",
     "typescript": "^4.6.4"
   },
   "config": {
