@@ -13,25 +13,51 @@ export default NextAuth({
             checks: 'both',
         }),
     ],
-    jwt:{
-        secret: process.env.SIGNIN_KEY
-    },
     callbacks: {
         async signIn({user, account, profile}) {
             const { email } = user;
            try {
             await fauna.query(
-                q.Create(
-                    q.Collection('users'),
-                    { data: { email } }
-                ),
+                q.If(
+                    q.Not(
+                        q.Exists(
+                            q.Match(
+                                q.Index('userByEmail'), // Index criado no fauna 
+                                q.Casefold(user.email)
+                            )
+                        )
+                    ),
+                    q.Create(
+                        q.Collection('users'),
+                        { data: { email } }
+                    ),
+                    q.Get(
+                        q.Match(
+                            q.Index('userByEmail'), // Index criado no fauna 
+                            q.Casefold(user.email)
+                        )
+                    )
+                )
             )
             return true
-           } catch {
-               return false
+           } catch(e) {
+              console.log(e);
+              return false;
            }
-        }
+        },
+        jwt: async ({ token, user }) => {
+            user && (token.user = user)
+            return token;
+        },
+        session: async ({ session, token }) => {
+            session.user = token.user
+            return session;
+        },
     },
-    //secret: process.env.SECRET,
+    secret: "secret",
+    jwt: {
+        secret: "ksdkfsldferSDFSDFSDf",
+        
+    },
 
 })
