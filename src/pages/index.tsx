@@ -1,8 +1,10 @@
 import { GetStaticProps } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import { ToastContainer } from "react-toastify";
 import { SubscribeButton } from "../components/SubscribeButton";
 import { stripe } from "../services/stripe";
+import "react-toastify/dist/ReactToastify.css";
 
 import styles from "./home.module.scss";
 
@@ -19,7 +21,7 @@ export default function Home({ product }: HomeProps) {
       <Head>
         <title>Hone | ig.news</title>
       </Head>
-
+      <ToastContainer />
       <main className={styles.contentContainer}>
         <section className={styles.hero}>
           <span>👏 Hey, welcome</span>
