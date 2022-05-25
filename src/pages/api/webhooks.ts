@@ -1,8 +1,10 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { NextApiRequest, NextApiResponse } from "next";
+import { toast } from "react-toastify";
 import { Readable } from 'stream'
 import Stripe from "stripe";
 import { stripe } from "../../services/stripe";
+import { saveSubscription } from "./_lib/manageSubscription";
 
 async function buffer(readable: Readable) {
     const chunks = [];
@@ -23,7 +25,9 @@ export const config = {
 }
 
 const relevantEvents = new Set([
-    'checkout.session.completed'
+    'checkout.session.completed',
+    'customer.subscription.updated',
+    'customer.subscription.deleted',
 ])
 
 export default async(req: NextApiRequest, res: NextApiResponse) => {
@@ -39,10 +43,41 @@ export default async(req: NextApiRequest, res: NextApiResponse) => {
             return res.status(400).send(`Webhook error ${e.message}`)
         }
 
-        const {type} = event;
+        const { type } = event;
 
         if(relevantEvents.has(type)) {
-            console.log('Evento recebido', event)
+            
+           console.log(`TYPE: ${type}`)
+            try {
+                switch(type) {
+                    case "checkout.session.completed": 
+                        const checkoutSession = event.data.object as Stripe.Checkout.Session;
+                        await saveSubscription(
+                            checkoutSession.subscription.toString(),
+                            checkoutSession.customer.toString(),
+                            true
+                        );
+                        break;
+                    case 'customer.subscription.created':
+                        break;
+                    case 'customer.subscription.updated':
+                        break;
+                    case 'customer.subscription.deleted':
+                        const subscription = event.data.object as Stripe.Checkout.Session;
+
+                        await saveSubscription(
+                            subscription.id,
+                            subscription.customer.toString(), 
+                        );
+                            
+                        break;
+                    default:
+                        throw new Error("Unhandled event");
+                }
+            } catch(e) {
+                toast('Webhook handler failed')
+                return res.status(666).json({error: 'Webhook handler failed'})
+            }
         }
 
         return res.json({recieved: true})
